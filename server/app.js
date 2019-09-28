@@ -17,17 +17,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 
-app.get('/', 
+app.get('/',
 (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/create',
 (req, res) => {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/links',
 (req, res, next) => {
   models.Links.getAll()
     .then(links => {
@@ -38,7 +38,7 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
+app.post('/links',
 (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
@@ -77,7 +77,60 @@ app.post('/links',
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.post('/signup',(req, res, next)=>{
+  var userObj = {
+    username: req.body.username,
+    password: req.body.password
+  }
+  // var name = req.body.username;
+  // var password = req.body.password;
+  return models.Users.get(userObj)//get username from user table
+    .then(user => {
+      if(user) {
+        throw user;
+      } else {
+        return models.Users.create(userObj)
+      }
+    })
+    .then(() => {
+      res.redirect('/');
+    })
+    .error(error => {
+      res.redirect('/signup');
+    })
+    .catch(user => {
+      res.status(400).send(user);
+    });
+        //if username is taken
+      //throw err and say it is taken
+  //if username is valid and password is valid
 
+});
+app.post('/login',(req, res, next)=>{
+  var userObj = {
+    username: req.body.username,
+    password: req.body.password
+  }
+  // var name = req.body.username;
+  // var password = req.body.password;
+  return models.Users.get(userObj)//get username from user table
+    .then(user => {
+      if(!user || !models.Users.compare(userObj.password,user.password,user.salt)){
+        throw new Error("Wrong")
+      }
+    res.redirect('/')
+    })
+    // .then(() => {
+    //   res.redirect('/');
+    // })
+    .error(error=>{
+      res.redirect('/login')
+    })
+    .catch(err => {
+      res.redirect('/login');
+    })
+});
+//
 
 
 /************************************************************/
